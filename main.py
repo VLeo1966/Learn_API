@@ -1,22 +1,30 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template
 import requests
 
 app = Flask(__name__)
 
-# Route for serving the homepage
+
+# Главная страница
 @app.route('/')
 def home():
-    return render_template('index3.html')
-
-# Route for getting a random quote
-@app.route('/quote')
-def get_quote():
-    response = requests.get('https://api.quotable.io/random')
-    if response.status_code == 200:
+    try:
+        # Запрашиваем случайную цитату с API
+        response = requests.get('https://api.quotable.io/random')
+        response.raise_for_status()  # Проверяем наличие ошибок HTTP
         data = response.json()
-        return jsonify(content=data['content'], author=data['author'])
-    else:
-        return jsonify(content="Oops! Something went wrong.", author="Unknown")
+
+        # Получаем цитату и автора из данных
+        quote = data['content']
+        author = data['author']
+    except requests.exceptions.RequestException as e:
+        quote = "Не удалось получить цитату. Попробуйте позже."
+        author = ""
+
+    # Передаем цитату и автора в шаблон
+    return render_template('index3.html', quote=quote, author=author)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+#
